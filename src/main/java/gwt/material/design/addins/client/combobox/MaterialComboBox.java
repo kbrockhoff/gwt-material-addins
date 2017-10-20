@@ -80,6 +80,8 @@ import static gwt.material.design.addins.client.combobox.js.JsComboBox.$;
 public class MaterialComboBox<T> extends AbstractValueWidget<List<T>> implements JsLoader, HasPlaceholder,
         HasOpenHandlers<T>, HasCloseHandlers<T>, HasUnselectItemHandler<T>, HasReadOnly {
 
+    public static final String BLANK_VALUE_TEXT = "";
+
     static {
         if (MaterialAddins.isDebug()) {
             MaterialDesignBase.injectDebugJs(MaterialComboBoxDebugClientBundle.INSTANCE.select2DebugJs());
@@ -97,7 +99,7 @@ public class MaterialComboBox<T> extends AbstractValueWidget<List<T>> implements
     private Label label = new Label();
     private MaterialLabel errorLabel = new MaterialLabel();
     protected MaterialWidget listbox = new MaterialWidget(Document.get().createSelectElement());
-    private KeyFactory<T, String> keyFactory = Object::toString;
+    private KeyFactory<T, String> keyFactory = new AllowBlankKeyFactory();
     private JsComboBoxOptions options = JsComboBoxOptions.create();
 
     private ErrorMixin<AbstractValueWidget, MaterialLabel> errorMixin;
@@ -455,11 +457,17 @@ public class MaterialComboBox<T> extends AbstractValueWidget<List<T>> implements
     @Override
     public void setValue(List<T> values, boolean fireEvents) {
         if (!isMultiple()) {
-            if (!values.isEmpty()) {
+            if (values == null || values.isEmpty()) {
+                setSingleValue(null, fireEvents);
+            } else {
                 setSingleValue(values.get(0), fireEvents);
             }
         } else {
-            setValues(values, fireEvents);
+            if (values == null) {
+                setValues(new ArrayList<T>(), fireEvents);
+            } else {
+                setValues(values, fireEvents);
+            }
         }
     }
 
@@ -689,4 +697,17 @@ public class MaterialComboBox<T> extends AbstractValueWidget<List<T>> implements
         }
         return readOnlyMixin;
     }
+
+    class AllowBlankKeyFactory implements KeyFactory<T, String> {
+
+        @Override
+        public String generateKey(T object) {
+            if (object == null) {
+                return BLANK_VALUE_TEXT;
+            } else {
+                return object.toString();
+            }
+        }
+    }
+
 }
