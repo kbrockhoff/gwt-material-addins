@@ -99,6 +99,7 @@ public class MaterialComboBox<T> extends AbstractValueWidget<List<T>> implements
     protected MaterialWidget listbox = new MaterialWidget(Document.get().createSelectElement());
     private KeyFactory<T, String> keyFactory = Object::toString;
     private JsComboBoxOptions options = JsComboBoxOptions.create();
+    private boolean loaded = false;
 
     private ErrorMixin<AbstractValueWidget, MaterialLabel> errorMixin;
     private ReadOnlyMixin<MaterialComboBox, MaterialWidget> readOnlyMixin;
@@ -158,6 +159,7 @@ public class MaterialComboBox<T> extends AbstractValueWidget<List<T>> implements
         if (getTextColor() != null) {
             $(getElement()).find(".select2-selection__rendered").css("color", getTextColor().getCssName());
         }
+        loaded = true;
     }
 
     @Override
@@ -176,6 +178,7 @@ public class MaterialComboBox<T> extends AbstractValueWidget<List<T>> implements
         jsComboBox.off(ComboBoxEvents.OPEN);
         jsComboBox.off(ComboBoxEvents.CLOSE);
         jsComboBox.select2("destroy");
+        loaded = false;
     }
 
     @Override
@@ -285,6 +288,7 @@ public class MaterialComboBox<T> extends AbstractValueWidget<List<T>> implements
         }
         listbox.clear();
         values.clear();
+        selectedIndex = -1;
     }
 
     /**
@@ -336,7 +340,23 @@ public class MaterialComboBox<T> extends AbstractValueWidget<List<T>> implements
      * Add a clear button on the right side of the combobox
      */
     public void setAllowClear(boolean allowClear) {
+        boolean original = options.allowClear;
         options.allowClear = allowClear;
+        if (allowClear) {
+            super.setAllowBlank(allowClear);
+        }
+        if (original != allowClear && loaded) {
+            reload();
+        }
+    }
+
+    @Override
+    public void setAllowBlank(boolean allowBlank) {
+        super.setAllowBlank(allowBlank);
+        if (allowBlank) {
+            setAllowClear(allowBlank);
+            setValue(Collections.emptyList(), false);
+        }
     }
 
     /**
@@ -457,6 +477,8 @@ public class MaterialComboBox<T> extends AbstractValueWidget<List<T>> implements
         if (!isMultiple()) {
             if (!values.isEmpty()) {
                 setSingleValue(values.get(0), fireEvents);
+            } else {
+                selectedIndex = -1;
             }
         } else {
             setValues(values, fireEvents);
@@ -689,4 +711,5 @@ public class MaterialComboBox<T> extends AbstractValueWidget<List<T>> implements
         }
         return readOnlyMixin;
     }
+
 }

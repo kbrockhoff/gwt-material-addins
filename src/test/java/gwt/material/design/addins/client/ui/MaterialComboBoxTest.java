@@ -239,4 +239,50 @@ public class MaterialComboBoxTest extends AbstractValueWidgetTest<MaterialComboB
         Label lblTitle = (Label) comboBox.getWidget(1);
         assertTrue(lblTitle.getElement().hasClassName(AddinsCssName.SELECT2LABEL));
     }
+
+    public void testAllowBlanks() {
+        // given
+        MaterialComboBox<Integer> comboBox = new MaterialComboBox<>();
+        RootPanel.get().add(comboBox);
+        if (comboBox.isAllowClear()) {
+            comboBox.setAllowClear(false);
+        }
+        comboBox.setAllowBlank(false);
+        assertFalse(comboBox.isAllowClear());
+        assertFalse(comboBox.isAllowBlank());
+        comboBox.addItem(Integer.valueOf(1));
+        comboBox.addItem(Integer.valueOf(2));
+        comboBox.addItem(Integer.valueOf(3));
+        comboBox.setSelectedIndex(0);
+        assertEquals(3, comboBox.getValues().size());
+        assertEquals(1, comboBox.getValue().size());
+
+        // when / then
+        comboBox.setAllowBlank(true);
+        assertTrue(comboBox.isAllowClear());
+        assertTrue(comboBox.isAllowBlank());
+        assertEquals(0, comboBox.getValue().size());
+
+        comboBox.setValue(null);
+        assertEquals(0, comboBox.getSelectedIndex());
+        assertNull(comboBox.getValue());
+        List<Integer> value = new ArrayList<>();
+        value.add(Integer.valueOf(2));
+        comboBox.setValue(value);
+        assertEquals(2, comboBox.getSelectedIndex());
+        assertNotNull(comboBox.getValue());
+        comboBox.setValue(null);
+        assertEquals(0, comboBox.getSelectedIndex());
+        assertNull(comboBox.getValue());
+
+        comboBox.setAllowBlank(false);
+        assertEquals(0, comboBox.getSelectedIndex());
+        assertNotNull(comboBox.getValue());
+
+        comboBox.setAllowBlank(true);
+        comboBox.setValue(null);
+        assertNull(comboBox.getValue());
+
+    }
+
 }
