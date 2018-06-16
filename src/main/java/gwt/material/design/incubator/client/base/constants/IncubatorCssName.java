@@ -32,4 +32,18 @@ public interface IncubatorCssName {
     String LANGUAGE_ACTIVATOR = "language-activator";
     String LANGUAGE_SELECTOR_ITEM = "language-selector-item";
     String PROGRESS_ITEM = "progress-item";
+    String INFINITE_SCROLL_CONTAINER = "infinite-scroll-container";
+    String INFINITE_SCROLL_LOADER = "infinite-scroll-loader";
+    String WRAPPER = "wrapper";
+    String QUESTION_WRAPPER = "question-wrapper";
+    String QUESTION_LABEL = "question-label";
+    String QUESTION_ITEM = "question-item";
+    String CATEGORY_QUESTION = "category-question";
+    String QUESTION_PROGRESS = "question-progress";
+    String ESSAY_QUESTION = "essay-question";
+    String QUESTION_FIELD_GROUP = "question-field-group";
+    String SIGNATURE_VALIDATION = "signature-validation";
+    String LABEL_PANEL = "label-panel";
+    String JSON_TABLE = "json-table";
+    String SINGLE_LANGUAGE = "single-language";
 }

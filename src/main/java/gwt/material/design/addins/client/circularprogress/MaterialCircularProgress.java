@@ -139,6 +139,17 @@ public class MaterialCircularProgress extends AbstractValueWidget<Double> implem
     }
 
     @Override
+    public void reset() {
+        super.reset();
+
+        reload();
+    }
+
+    public void redraw() {
+        $(getElement()).circleProgress("redraw");
+    }
+
+    @Override
     public Double getValue() {
         return options.value;
     }
@@ -146,7 +157,17 @@ public class MaterialCircularProgress extends AbstractValueWidget<Double> implem
     @Override
     public void setValue(Double value) {
         setValue(value, false);
-        options.value = value;
+    }
+
+    @Override
+    public void setValue(Double value, boolean fireEvents) {
+        super.setValue(value, fireEvents);
+
+        if (!isAttached()) {
+            options.value = value;
+        } else {
+            $(getElement()).circleProgress("value", value);
+        }
     }
 
     /**

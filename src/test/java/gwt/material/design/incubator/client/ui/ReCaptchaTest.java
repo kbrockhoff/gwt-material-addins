@@ -21,9 +21,9 @@ package gwt.material.design.incubator.client.ui;
 
 import com.google.gwt.dom.client.ScriptElement;
 import gwt.material.design.incubator.client.MaterialWidgetTest;
-import gwt.material.design.incubator.client.recaptcha.ReCaptcha;
-import gwt.material.design.incubator.client.recaptcha.constants.CaptchaTheme;
-import gwt.material.design.incubator.client.recaptcha.constants.CaptchaType;
+import gwt.material.design.incubator.client.google.recaptcha.ReCaptcha;
+import gwt.material.design.incubator.client.google.recaptcha.constants.RecaptchaTheme;
+import gwt.material.design.incubator.client.google.recaptcha.constants.RecaptchaType;
 import gwt.material.design.jquery.client.api.Functions;
 
 /**
@@ -38,30 +38,14 @@ public class ReCaptchaTest extends MaterialWidgetTest<ReCaptcha> {
         return new ReCaptcha();
     }
 
-    public void testReCaptchaScriptElement() {
-        ReCaptcha reCaptcha = getWidget();
-
-        assertNotNull(reCaptcha.getReCaptchaScriptElement());
-        ScriptElement element = reCaptcha.getReCaptchaScriptElement();
-        assertEquals(element.getAttribute("async"), "");
-        assertEquals(element.getAttribute("defer"), "");
-        reCaptcha.removeFromParent();
-        assertFalse(reCaptcha.isAttached());
-    }
-
     public void testProperties() {
         ReCaptcha reCaptcha = getWidget();
 
         // Check Themes
-        reCaptcha.setTheme(CaptchaTheme.LIGHT);
-        assertEquals(reCaptcha.getTheme(), CaptchaTheme.LIGHT);
-        reCaptcha.setTheme(CaptchaTheme.DARK);
-        assertEquals(reCaptcha.getTheme(), CaptchaTheme.DARK);
-
-        // Check Site Key
-        final String SITE_KEY = "sampleSitekKey";
-        reCaptcha.setSiteKey(SITE_KEY);
-        assertEquals(reCaptcha.getSiteKey(), SITE_KEY);
+        reCaptcha.setTheme(RecaptchaTheme.LIGHT);
+        assertEquals(reCaptcha.getTheme(), RecaptchaTheme.LIGHT);
+        reCaptcha.setTheme(RecaptchaTheme.DARK);
+        assertEquals(reCaptcha.getTheme(), RecaptchaTheme.DARK);
 
         // Check Callback
         final Functions.Func callback = () -> {};
@@ -70,10 +54,10 @@ public class ReCaptchaTest extends MaterialWidgetTest<ReCaptcha> {
 
         // Check Type
         // Expected by default - IMAGE
-        assertEquals(reCaptcha.getType(), CaptchaType.IMAGE);
-        reCaptcha.setType(CaptchaType.AUDIO);
-        assertEquals(reCaptcha.getType(), CaptchaType.AUDIO);
-        reCaptcha.setType(CaptchaType.IMAGE);
-        assertEquals(reCaptcha.getType(), CaptchaType.IMAGE);
+        assertEquals(reCaptcha.getType(), RecaptchaType.IMAGE);
+        reCaptcha.setType(RecaptchaType.AUDIO);
+        assertEquals(reCaptcha.getType(), RecaptchaType.AUDIO);
+        reCaptcha.setType(RecaptchaType.IMAGE);
+        assertEquals(reCaptcha.getType(), RecaptchaType.IMAGE);
     }
 }

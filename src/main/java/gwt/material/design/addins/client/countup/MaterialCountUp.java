@@ -20,7 +20,6 @@
 package gwt.material.design.addins.client.countup;
 
 import com.google.gwt.dom.client.Document;
-import com.google.gwt.dom.client.Element;
 import gwt.material.design.addins.client.MaterialAddins;
 import gwt.material.design.addins.client.countup.js.CountUp;
 import gwt.material.design.addins.client.countup.js.JsCountUpOptions;
@@ -89,14 +88,20 @@ public class MaterialCountUp extends AbstractValueWidget<Double> {
      * Toggle pause/resume
      */
     public void pauseResume() {
-        countUp.pauseResume();
+        if (countUp != null) {
+            countUp.pauseResume();
+        }
     }
 
     /**
      * Reset an animation
      */
     public void reset() {
-        countUp.reset();
+        super.reset();
+
+        if (countUp != null) {
+            countUp.reset();
+        }
     }
 
     public double getStartValue() {
@@ -117,6 +122,24 @@ public class MaterialCountUp extends AbstractValueWidget<Double> {
     @Override
     public Double getValue() {
         return getEndValue();
+    }
+
+    @Override
+    public void setValue(Double value, boolean fireEvents) {
+        setValue(value, fireEvents, true);
+    }
+
+    /**
+     * Provide a better control whether you want to automatically start the counting of the new value. By Default it will
+     * start counting with the given value.
+     */
+    public void setValue(Double value, boolean fireEvents, boolean autoStart) {
+        super.setValue(value, fireEvents);
+        setEndValue(value);
+
+        if (autoStart) {
+            start();
+        }
     }
 
     /**

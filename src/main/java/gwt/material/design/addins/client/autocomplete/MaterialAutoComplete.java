@@ -33,6 +33,7 @@ import gwt.material.design.client.MaterialDesignBase;
 import gwt.material.design.client.base.*;
 import gwt.material.design.client.base.mixin.*;
 import gwt.material.design.client.constants.CssName;
+import gwt.material.design.client.constants.FieldType;
 import gwt.material.design.client.constants.IconType;
 import gwt.material.design.client.constants.ProgressType;
 import gwt.material.design.client.ui.MaterialChip;
@@ -159,7 +160,7 @@ import java.util.Map.Entry;
  */
 // @formatter:on
 public class MaterialAutoComplete extends AbstractValueWidget<List<? extends Suggestion>> implements HasPlaceholder,
-        HasProgress, HasType<AutocompleteType>, HasSelectionHandlers<Suggestion>, HasReadOnly {
+        HasProgress, HasType<AutocompleteType>, HasSelectionHandlers<Suggestion>, HasReadOnly, HasFieldTypes {
 
     static {
         if (MaterialAddins.isDebug()) {
@@ -188,6 +189,7 @@ public class MaterialAutoComplete extends AbstractValueWidget<List<? extends Sug
     private FocusableMixin<MaterialWidget> focusableMixin;
     private ReadOnlyMixin<MaterialAutoComplete, TextBox> readOnlyMixin;
     private CssTypeMixin<AutocompleteType, MaterialAutoComplete> typeMixin;
+    private FieldTypeMixin<MaterialAutoComplete> fieldTypeMixin;
 
     /**
      * Use MaterialAutocomplete to search for matches from local or remote data
@@ -219,19 +221,24 @@ public class MaterialAutoComplete extends AbstractValueWidget<List<? extends Sug
         setup(suggestions);
     }
 
+    private HandlerRegistration listHandler, itemBoxKeyDownHandler, itemBoxBlurHandler, itemBoxClickHandler;
+
     @Override
     protected void onLoad() {
         super.onLoad();
 
-        registerHandler(list.addDomHandler(event -> suggestBox.showSuggestionList(), ClickEvent.getType()));
+        loadHandlers();
+    }
 
-        registerHandler(itemBox.addBlurHandler(blurEvent -> {
+    protected void loadHandlers() {
+
+        itemBoxBlurHandler = itemBox.addBlurHandler(blurEvent -> {
             if (getValue().size() > 0) {
                 label.addStyleName(CssName.ACTIVE);
             }
-        }));
+        });
 
-        registerHandler(itemBox.addKeyDownHandler(event -> {
+        itemBoxKeyDownHandler = itemBox.addKeyDownHandler(event -> {
             boolean changed = false;
 
             switch (event.getNativeKeyCode()) {
@@ -265,6 +272,7 @@ public class MaterialAutoComplete extends AbstractValueWidget<List<? extends Sug
                             }
                         }
                     }
+                    break;
                 case KeyCodes.KEY_DELETE:
                     if (itemBox.getValue().trim().isEmpty()) {
                         for (ListItem li : itemsHighlighted) {
@@ -278,34 +286,52 @@ public class MaterialAutoComplete extends AbstractValueWidget<List<? extends Sug
                     itemBox.setFocus(true);
                     break;
             }
+        });
 
-            if (changed) {
-                ValueChangeEvent.fire(MaterialAutoComplete.this, getValue());
-            }
-        }));
+        itemBoxClickHandler = itemBox.addClickHandler(event -> suggestBox.showSuggestionList());
+    }
 
-        registerHandler(itemBox.addClickHandler(event -> suggestBox.showSuggestionList()));
+    @Override
+    protected void onUnload() {
+        super.onUnload();
 
-        registerHandler(suggestBox.addSelectionHandler(selectionEvent -> {
-            Suggestion selectedItem = selectionEvent.getSelectedItem();
-            itemBox.setValue("");
-            if (addItem(selectedItem)) {
-                ValueChangeEvent.fire(MaterialAutoComplete.this, getValue());
-            }
-            itemBox.setFocus(true);
-        }));
+        unloadHandlers();
+    }
+
+    protected void unloadHandlers() {
+        removeHandler(listHandler);
+        removeHandler(itemBoxBlurHandler);
+        removeHandler(itemBoxKeyDownHandler);
+        removeHandler(itemBoxClickHandler);
     }
 
     /**
      * Generate and build the List Items to be set on Auto Complete box.
      */
     protected void setup(SuggestOracle suggestions) {
+
+        if (itemBoxKeyDownHandler != null) {
+            itemBoxKeyDownHandler.removeHandler();
+        }
+
         list.setStyleName(AddinsCssName.MULTIVALUESUGGESTBOX_LIST);
         this.suggestions = suggestions;
         final ListItem item = new ListItem();
 
         item.setStyleName(AddinsCssName.MULTIVALUESUGGESTBOX_INPUT_TOKEN);
+
         suggestBox = new SuggestBox(suggestions, itemBox);
+        suggestBox.addSelectionHandler(selectionEvent -> {
+            Suggestion selectedItem = selectionEvent.getSelectedItem();
+            itemBox.setValue("");
+            if (addItem(selectedItem)) {
+                ValueChangeEvent.fire(MaterialAutoComplete.this, getValue());
+            }
+            itemBox.setFocus(true);
+        });
+
+        loadHandlers();
+
         setLimit(this.limit);
         String autocompleteId = DOM.createUniqueId();
         itemBox.getElement().setId(autocompleteId);
@@ -316,7 +342,7 @@ public class MaterialAutoComplete extends AbstractValueWidget<List<? extends Sug
 
         panel.add(list);
         panel.getElement().setAttribute("onclick",
-            "document.getElementById('" + autocompleteId + "').focus()");
+                "document.getElementById('" + autocompleteId + "').focus()");
         panel.add(errorLabel);
         suggestBox.setFocus(true);
     }
@@ -355,7 +381,7 @@ public class MaterialAutoComplete extends AbstractValueWidget<List<? extends Sug
 
         if (getType() == AutocompleteType.TEXT) {
             suggestionMap.clear();
-            itemBox.setText(suggestion.getDisplayString());
+            itemBox.setText(suggestion.getReplacementString());
         } else {
             final MaterialChip chip = chipProvider.getChip(suggestion);
             if (chip == null) {
@@ -391,6 +417,13 @@ public class MaterialAutoComplete extends AbstractValueWidget<List<? extends Sug
             list.insert(displayItem, list.getWidgetCount() - 1);
         }
         return true;
+    }
+
+    @Override
+    public void reset() {
+        super.reset();
+
+        clear();
     }
 
     /**
@@ -526,6 +559,7 @@ public class MaterialAutoComplete extends AbstractValueWidget<List<? extends Sug
      * Set the number of suggestions to be displayed to the user. This differs from
      * setLimit() which set both the suggestions displayed AND the limit of values
      * allowed within the autocomplete.
+     *
      * @param limit
      */
     public void setAutoSuggestLimit(int limit) {
@@ -545,9 +579,8 @@ public class MaterialAutoComplete extends AbstractValueWidget<List<? extends Sug
     }
 
     /**
-     * @see gwt.material.design.client.ui.MaterialValueBox#setLabel(String)
-     *
      * @param label
+     * @see gwt.material.design.client.ui.MaterialValueBox#setLabel(String)
      */
     public void setLabel(String label) {
         this.label.setText(label);
@@ -643,6 +676,26 @@ public class MaterialAutoComplete extends AbstractValueWidget<List<? extends Sug
     @Override
     public boolean isToggleReadOnly() {
         return getReadOnlyMixin().isToggleReadOnly();
+    }
+
+    @Override
+    public void setFieldType(FieldType type) {
+        getFieldTypeMixin().setFieldType(type);
+    }
+
+    @Override
+    public FieldType getFieldType() {
+        return getFieldTypeMixin().getFieldType();
+    }
+
+    @Override
+    public void setLabelWidth(double percentWidth) {
+        getFieldTypeMixin().setLabelWidth(percentWidth);
+    }
+
+    @Override
+    public void setFieldWidth(double percentWidth) {
+        getFieldTypeMixin().setFieldWidth(percentWidth);
     }
 
     /**
@@ -862,5 +915,12 @@ public class MaterialAutoComplete extends AbstractValueWidget<List<? extends Sug
             focusableMixin = new FocusableMixin<>(new MaterialWidget(itemBox.getElement()));
         }
         return focusableMixin;
+    }
+
+    protected FieldTypeMixin<MaterialAutoComplete> getFieldTypeMixin() {
+        if (fieldTypeMixin == null) {
+            fieldTypeMixin = new FieldTypeMixin<MaterialAutoComplete>(this);
+        }
+        return fieldTypeMixin;
     }
 }

@@ -58,7 +58,6 @@ public class MaterialWebpImageTest extends MaterialWidgetTest<MaterialWebpImage>
 
         materialWebpImage.setFallbackUrl(FALLBACK_URL);
         assertEquals(FALLBACK_URL, materialWebpImage.getFallbackUrl());
-        assertEquals(generateFallbackAttribute(), materialWebpImage.getAttributeMixin().getAttribute());
         materialWebpImage.setFallbackUrl(null);
         assertNull(materialWebpImage.getFallbackUrl());
     }
@@ -75,6 +74,5 @@ public class MaterialWebpImageTest extends MaterialWidgetTest<MaterialWebpImage>
 
         materialWebpImage.setFallbackExtension(FALLBACK_EXTENSION);
         assertEquals(FALLBACK_EXTENSION, materialWebpImage.getFallbackExtension());
-        assertEquals(FALLBACK_URL, materialWebpImage.getFallbackUrl());
     }
 }

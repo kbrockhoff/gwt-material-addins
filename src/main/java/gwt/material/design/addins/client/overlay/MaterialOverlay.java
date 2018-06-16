@@ -21,6 +21,7 @@ package gwt.material.design.addins.client.overlay;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Document;
+import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.logical.shared.*;
 import com.google.gwt.event.shared.HandlerRegistration;
@@ -72,7 +73,7 @@ public class MaterialOverlay extends MaterialWidget implements HasOpenHandlers<M
         }
     }
 
-    private MaterialWidget source;
+    private Element sourceElement;
     private MaterialPathAnimator animator = new MaterialPathAnimator();
     private MaterialOverlayTab overlayTab;
     private MaterialIcon minimizeIcon = new MaterialIcon(IconType.KEYBOARD_ARROW_DOWN);
@@ -92,16 +93,20 @@ public class MaterialOverlay extends MaterialWidget implements HasOpenHandlers<M
         setOpacity(opacity);
     }
 
+    public void open(MaterialWidget source) {
+        open(source.getElement());
+    }
+
     /**
      * Open the Overlay Panel with Path Animator applied
      */
-    public void open(MaterialWidget source) {
-        this.source = source;
+    public void open(Element sourceElement) {
+        this.sourceElement = sourceElement;
         $("body").attr("style", "overflow: hidden !important");
-        animator.setSourceElement(source.getElement());
+        animator.setSourceElement(sourceElement);
         animator.setTargetElement(getElement());
+        animator.setCompletedCallback(() -> OpenEvent.fire(MaterialOverlay.this, MaterialOverlay.this));
         animator.animate();
-        OpenEvent.fire(this, this);
     }
 
     /**
@@ -114,31 +119,54 @@ public class MaterialOverlay extends MaterialWidget implements HasOpenHandlers<M
     }
 
     /**
-     * Close the Overlay Panel with Path Animator applied
+     * Close the Overlay Panel with Path Animator applied.
      */
     public void close() {
-        body().attr("style", "overflow: auto !important");
-        if (source != null) {
+        close(true);
+    }
+
+    /**
+     * Close the Overlay Panel with Path Animator applied.
+     *
+     * @param fireEventImmediately should we fire the close event immediately or wait for the animation.
+     */
+    public void close(boolean fireEventImmediately) {
+        if ($(getElement()).parents(AddinsCssName.OVERLAY_PANEL).length() == 1) {
+            body().attr("style", "overflow: hidden !important");
+        } else {
+            body().attr("style", "overflow: auto !important");
+        }
+        if (sourceElement != null) {
+            if(!fireEventImmediately) {
+                animator.setCompletedCallback(() -> CloseEvent.fire(MaterialOverlay.this, MaterialOverlay.this));
+            } else {
+                CloseEvent.fire(MaterialOverlay.this, MaterialOverlay.this);
+            }
             animator.reverseAnimate();
         } else {
             setOpacity(0);
             setVisibility(Style.Visibility.HIDDEN);
+            CloseEvent.fire(MaterialOverlay.this, MaterialOverlay.this);
         }
-        CloseEvent.fire(this, this);
+    }
+
+    public boolean isOpen() {
+        Style.Visibility visibility = getVisibility();
+        return visibility == null || !visibility.equals(Style.Visibility.HIDDEN);
     }
 
     /**
-     * Get source widget for path animator
+     * Get source element for path animator
      */
-    public MaterialWidget getSource() {
-        return source;
+    public Element getSourceElement() {
+        return sourceElement;
     }
 
     /**
-     * Set source widget for path animator
+     * Set source element for path animator
      */
-    public void setSource(MaterialWidget source) {
-        this.source = source;
+    public void setSourceElement(Element sourceElement) {
+        this.sourceElement = sourceElement;
     }
 
     @Override
@@ -171,6 +199,14 @@ public class MaterialOverlay extends MaterialWidget implements HasOpenHandlers<M
      */
     public void setExtraTransitionDuration(int extraTransitionDuration) {
         animator.setExtraTransitionDuration(extraTransitionDuration);
+    }
+
+    public void setRelativeToWindow(boolean relativeToWindow) {
+        animator.setRelativeToWindow(relativeToWindow);
+    }
+
+    public boolean isRelativeToWindow() {
+        return animator.isRelativeToWindow();
     }
 
     @Override

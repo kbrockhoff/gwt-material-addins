@@ -82,7 +82,7 @@ public class MaterialStep extends MaterialWidget implements HasActive, HasTitle,
     private MaterialIcon iconError = new MaterialIcon(IconType.REPORT_PROBLEM);
     private MaterialIcon iconSuccess = new MaterialIcon(IconType.CHECK_CIRCLE);
     private ActiveMixin<MaterialStep> activeMixin;
-    private Axis axis = Axis.VERTICAL;
+    private Axis axis = Axis.HORIZONTAL;
     private State state;
 
     public MaterialStep() {
@@ -217,6 +217,17 @@ public class MaterialStep extends MaterialWidget implements HasActive, HasTitle,
         }
     }
 
+    /**
+     * Will set the distance width of the step line from another step.
+     */
+    public void setLineDistanceWidth(int lineDistanceWidth) {
+        if (divLine.isAttached()) {
+            divLine.setWidth(lineDistanceWidth + "px");
+        } else {
+            divLine.addAttachHandler(event -> divLine.setWidth(lineDistanceWidth + "px"));
+        }
+    }
+
     public Div getConCircle() {
         return conCircle;
     }
@@ -248,7 +259,7 @@ public class MaterialStep extends MaterialWidget implements HasActive, HasTitle,
     @Override
     public void setAxis(Axis axis) {
         if (axis == null) {
-            axis = Axis.VERTICAL;
+            axis = Axis.HORIZONTAL;
         }
         this.axis = axis;
         switch (axis) {
